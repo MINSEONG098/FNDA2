@@ -1,685 +1,1058 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>매출 및 판매 데이터 분석 대시보드</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>[이마트 센트럴점] 내 맘대로 골라 담는 간편식 20% 파격 할인 - 매일 점심 12시 선착순 20세트!</title>
+    
+    <!-- SEO & OpenGraph Meta Tags -->
+    <meta name="description" content="골라 담는 한 끼! 이마트 센트럴점 냉장 간편식 3종 중 원하는 2개를 고르면 20% 즉시 할인. 매일 낮 12시 선착순 20세트 한정 타임어택! 한 끼 4천원대에 두 끼를 해결하세요.">
+    <meta property="og:title" content="[이마트 센트럴점] 오늘의 간편식, 내 맘대로 골라 20% 할인!">
+    <meta property="og:description" content="매일 점심 12:00 선착순 20세트 한정! 전 조합 9천원대 (한 끼 4천원대 실속 실현)">
+    <meta property="og:type" content="website">
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐳</text></svg>">
+
+    <!-- Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- SheetJS (xlsx) CDN for parsing Excel files -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <!-- FontAwesome CDN -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Pretendard', 'Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        emart: {
+                            yellow: '#ffd400',
+                            green: '#006633',
+                            darkGreen: '#004d26',
+                            red: '#e60012',
+                            dark: '#0f172a'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
-        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
         body {
             font-family: 'Pretendard', sans-serif;
-            background-color: #f8fafc;
+            background-color: #0b0f19;
+            color: #f1f5f9;
         }
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
+        .hero-glow {
+            background: radial-gradient(circle at 50% 15%, rgba(0, 102, 51, 0.25) 0%, rgba(255, 212, 0, 0.08) 40%, transparent 70%);
         }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #f1f5f9;
+        .glass-card {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
+        .glass-card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
+        .glass-card-hover:hover {
+            transform: translateY(-4px);
+            border-color: rgba(255, 212, 0, 0.4);
+            box-shadow: 0 20px 40px -15px rgba(0, 102, 51, 0.3);
+        }
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.02); }
+        }
+        .animate-pulse-glow {
+            animation: pulseGlow 3s infinite ease-in-out;
         }
     </style>
 </head>
-<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+<body class="bg-[#0b0f19] text-slate-100 antialiased selection:bg-yellow-400 selection:text-slate-950">
 
-    <!-- Navigation Header -->
-    <header class="bg-indigo-900 text-white shadow-lg sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <div class="bg-indigo-600 p-2 rounded-lg text-white">
-                    <i class="fa-solid fa-chart-line text-xl"></i>
+    <!-- Top Announcement Bar -->
+    <aside class="bg-gradient-to-r from-emerald-900 via-emerald-800 to-green-900 text-yellow-300 text-xs sm:text-sm py-2.5 px-4 text-center font-medium sticky top-0 z-50 shadow-md border-b border-emerald-700/50 flex items-center justify-center space-x-2">
+        <span class="bg-yellow-400 text-slate-950 px-2 py-0.5 rounded-full text-[11px] font-extrabold tracking-wide uppercase animate-bounce">🔥 TIME ATTACK</span>
+        <span>이마트 센트럴점 단독! <strong>매일 점심 12:00 선착순 20세트 한정 20% 즉시 할인</strong></span>
+    </aside>
+
+    <!-- Sticky Header -->
+    <header class="sticky top-[38px] sm:top-[42px] z-40 bg-slate-950/85 backdrop-blur-xl border-b border-slate-800/80 transition-all">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <a href="#" class="flex items-center space-x-3 group">
+                <div class="flex items-center bg-green-600 text-white font-black px-3 py-1.5 rounded-xl shadow-lg shadow-green-900/40 tracking-wider group-hover:scale-105 transition">
+                    <span class="text-yellow-300">e</span>mart
                 </div>
-                <div>
-                    <h1 class="font-bold text-lg leading-tight">매출 및 실적 분석 대시보드</h1>
-                    <p class="text-xs text-indigo-300">Sales & Inventory Performance Dashboard</p>
+                <div class="flex flex-col">
+                    <span class="text-sm font-bold text-white leading-tight flex items-center space-x-1">
+                        <span>센트럴점</span>
+                        <span class="text-xs bg-yellow-400/20 text-yellow-300 px-1.5 py-0.2 rounded font-semibold">단독행사</span>
+                    </span>
+                    <span class="text-xs text-slate-400 flex items-center space-x-1 mt-0.5">
+                        <span>🐳 고래잇 마스코트</span>
+                    </span>
                 </div>
-            </div>
-            
+            </a>
+
+            <!-- Navigation Links -->
+            <nav class="hidden md:flex items-center space-x-8 text-sm font-semibold text-slate-300">
+                <a href="#calculatorSection" class="hover:text-yellow-400 transition">조합 계산기</a>
+                <a href="#whySection" class="hover:text-yellow-400 transition">왜 바꿨을까?</a>
+                <a href="#curationSection" class="hover:text-yellow-400 transition">추천 조합</a>
+                <a href="#cardNewsSection" class="hover:text-yellow-400 transition">카드뉴스</a>
+                <a href="#storeSection" class="hover:text-yellow-400 transition">골든존 위치</a>
+                <a href="#faqSection" class="hover:text-yellow-400 transition">FAQ</a>
+            </nav>
+
             <div class="flex items-center space-x-3">
-                <label for="excel-upload" class="cursor-pointer bg-indigo-600 hover:bg-indigo-500 text-white text-xs sm:text-sm font-medium px-4 py-2 rounded-lg transition duration-200 flex items-center gap-2 shadow">
-                    <i class="fa-solid fa-file-excel"></i>
-                    <span>데이터 업로드 (.xlsx, .csv)</span>
-                </label>
-                <input type="file" id="excel-upload" accept=".xlsx, .xls, .csv" class="hidden" onchange="handleFileUpload(event)">
-                
-                <button onclick="loadSampleData()" class="bg-slate-700 hover:bg-slate-600 text-white text-xs sm:text-sm font-medium px-3 py-2 rounded-lg transition duration-200 flex items-center gap-1.5" title="샘플 데이터 로드">
-                    <i class="fa-solid fa-arrows-rotate"></i>
-                    <span class="hidden sm:inline">샘플 초기화</span>
+                <button type="button" onclick="scrollToSection('calculatorSection')" class="px-4 py-2 rounded-xl bg-gradient-to-r from-yellow-400 to-amber-400 hover:from-yellow-300 hover:to-amber-300 text-slate-950 font-bold text-xs sm:text-sm shadow-lg shadow-yellow-500/20 transition transform hover:-translate-y-0.5">
+                    <i class="fa-solid fa-calculator mr-1.5"></i> 20% 할인 계산하기
                 </button>
             </div>
         </div>
     </header>
 
-    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <main class="relative overflow-hidden">
+        <div class="absolute inset-0 hero-glow pointer-events-none"></div>
 
-        <!-- Controls & Filters Bar -->
-        <section class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
-            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
-                <div class="flex items-center space-x-2">
-                    <span class="text-xs font-bold text-slate-600 flex items-center gap-1">
-                        <i class="fa-regular fa-calendar-days text-indigo-600"></i> 빠른 날짜 조회:
+        <!-- HERO SECTION -->
+        <section class="relative pt-16 pb-20 md:pt-28 md:pb-28 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center">
+            
+            <div class="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-green-500/10 border border-green-500/30 text-green-400 text-xs sm:text-sm font-bold mb-6">
+                <span class="w-2 h-2 rounded-full bg-green-400 animate-ping"></span>
+                <span>CENTRAL STORE EVENT · 2026.10.21(수) ~ 11.03(화) · 14일간</span>
+            </div>
+
+            <h1 class="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white max-w-4xl mx-auto leading-tight">
+                오늘의 간편식,<br>
+                <span class="bg-gradient-to-r from-yellow-300 via-yellow-400 to-amber-300 bg-clip-text text-transparent">내 맘대로 골라 담자!</span>
+            </h1>
+
+            <p class="mt-6 text-lg sm:text-xl text-slate-300 max-w-2xl mx-auto font-normal leading-relaxed">
+                취향대로 <strong class="text-white underline decoration-yellow-400 decoration-2">2개 이상</strong> 선택 시 무조건 <strong class="text-yellow-400">20% 즉시 할인!</strong><br>
+                전 조합 <strong class="text-white">9천 원대</strong> 진입 · 한 끼당 <strong class="text-yellow-300">4,000원대</strong> 실속 실현
+            </p>
+
+            <!-- 20% OFF Big Visual Emblem -->
+            <div class="mt-10 flex justify-center">
+                <div class="relative bg-gradient-to-br from-green-600 via-emerald-700 to-green-900 border-2 border-yellow-400/60 p-6 sm:p-8 rounded-3xl shadow-2xl shadow-green-900/50 max-w-md w-full transform hover:scale-105 transition duration-500">
+                    <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-yellow-400 text-slate-950 px-4 py-1 rounded-full text-xs font-black tracking-wider uppercase shadow">
+                        대상 상품 2개 이상 구매 시
+                    </div>
+                    <div class="text-white font-extrabold text-5xl sm:text-6xl tracking-tighter mt-2 flex items-center justify-center space-x-2">
+                        <span>20%</span>
+                        <span class="text-yellow-300 text-3xl font-black bg-white/10 px-3 py-1 rounded-2xl border border-white/20">OFF</span>
+                    </div>
+                    <div class="text-slate-200 text-sm font-medium mt-2">
+                        합계 금액에서 20% 즉시 할인 적용!
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Countdown Timer & Stock Card -->
+            <div class="mt-12 max-w-3xl mx-auto glass-card rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-800">
+                <div class="flex flex-col sm:flex-row items-center justify-between pb-6 border-b border-slate-800/80 gap-4">
+                    <div class="flex items-center space-x-3">
+                        <span class="w-3 h-3 rounded-full bg-red-500 animate-pulse"></span>
+                        <span class="text-sm sm:text-base font-bold text-slate-200" id="timerStatusTitle">오늘 낮 12:00 타임어택까지 남은 시간</span>
+                    </div>
+                    <span class="bg-red-500/20 text-red-400 text-xs font-bold px-3 py-1 rounded-full border border-red-500/30">
+                        매일 선착순 20세트 한정
                     </span>
-                    <div class="flex flex-wrap gap-1.5">
-                        <button onclick="setDatePreset('all')" class="px-2.5 py-1 text-xs font-medium rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition">전체</button>
-                        <button onclick="setDatePreset('7days')" class="px-2.5 py-1 text-xs font-medium rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition">최근 7일</button>
-                        <button onclick="setDatePreset('30days')" class="px-2.5 py-1 text-xs font-medium rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition">최근 30일</button>
-                        <button onclick="setDatePreset('month')" class="px-2.5 py-1 text-xs font-medium rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition">이번 달</button>
+                </div>
+
+                <!-- Timer Numbers -->
+                <div class="grid grid-cols-5 gap-2 sm:gap-4 my-8 text-center items-center">
+                    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-inner">
+                        <span class="text-3xl sm:text-5xl font-black text-yellow-400 font-mono" id="hoursVal">00</span>
+                        <span class="block text-[10px] sm:text-xs text-slate-400 mt-1 uppercase font-semibold">HOURS</span>
+                    </div>
+                    <span class="text-2xl font-bold text-slate-600">:</span>
+                    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-inner">
+                        <span class="text-3xl sm:text-5xl font-black text-yellow-400 font-mono" id="minutesVal">00</span>
+                        <span class="block text-[10px] sm:text-xs text-slate-400 mt-1 uppercase font-semibold">MINS</span>
+                    </div>
+                    <span class="text-2xl font-bold text-slate-600">:</span>
+                    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-inner">
+                        <span class="text-3xl sm:text-5xl font-black text-yellow-400 font-mono" id="secondsVal">00</span>
+                        <span class="block text-[10px] sm:text-xs text-slate-400 mt-1 uppercase font-semibold">SECS</span>
                     </div>
                 </div>
-                <div class="text-xs text-slate-500">
-                    선택 기간: <span id="selected-date-range-text" class="font-semibold text-slate-800">전체 기간</span>
-                </div>
-            </div>
 
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div class="flex flex-wrap items-center gap-3">
-                    <!-- Date Filter -->
-                    <div class="flex items-center space-x-2 bg-slate-50 p-2 rounded-lg border border-slate-200">
-                        <i class="fa-regular fa-calendar text-slate-400 text-sm"></i>
-                        <input type="date" id="start-date" class="bg-transparent text-sm font-medium focus:outline-none" onchange="updateCustomDateFilter()">
-                        <span class="text-slate-400">~</span>
-                        <input type="date" id="end-date" class="bg-transparent text-sm font-medium focus:outline-none" onchange="updateCustomDateFilter()">
+                <!-- Stock Gauge -->
+                <div class="bg-slate-900/70 p-5 rounded-2xl border border-slate-800">
+                    <div class="flex justify-between items-center text-xs sm:text-sm mb-2.5">
+                        <span class="text-slate-300 font-medium">오늘의 선착순 잔여 수량 현황</span>
+                        <span class="text-yellow-400 font-bold"><strong id="stockRemaining" class="text-lg">20</strong> / 20 세트 한정</span>
                     </div>
-
-                    <!-- Store Filter -->
-                    <select id="store-filter" onchange="applyFilters()" class="bg-slate-50 border border-slate-200 text-sm rounded-lg p-2.5 font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                        <option value="ALL">전체 점포</option>
-                    </select>
-
-                    <!-- Category Filter -->
-                    <select id="category-filter" onchange="applyFilters()" class="bg-slate-50 border border-slate-200 text-sm rounded-lg p-2.5 font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                        <option value="ALL">전체 카테고리</option>
-                    </select>
-
-                    <!-- Promo Filter -->
-                    <select id="promo-filter" onchange="applyFilters()" class="bg-slate-50 border border-slate-200 text-sm rounded-lg p-2.5 font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                        <option value="ALL">행사 여부 전체</option>
-                        <option value="Y">행사 적용 (Y)</option>
-                        <option value="N">행사 미적용 (N)</option>
-                    </select>
-                </div>
-
-                <div class="flex items-center justify-between md:justify-end gap-2 text-xs text-slate-500 border-t md:border-t-0 pt-2 md:pt-0 border-slate-100">
-                    <span>조회 데이터: <strong id="data-count" class="text-indigo-600 font-bold">0</strong>건</span>
-                    <button onclick="resetFilters()" class="text-indigo-600 hover:underline font-medium ml-2">필터 초기화</button>
-                </div>
-            </div>
-        </section>
-
-        <!-- KPI Summary Cards -->
-        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <!-- KPI 1: Total Revenue -->
-            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">총 매출액</span>
-                    <span class="p-2 bg-indigo-50 text-indigo-600 rounded-lg"><i class="fa-solid fa-won-sign"></i></span>
-                </div>
-                <div class="mt-2 flex items-baseline justify-between">
-                    <h3 id="kpi-total-sales" class="text-2xl font-bold text-slate-800">0 원</h3>
-                </div>
-                <p id="kpi-sales-sub" class="text-xs text-slate-500 mt-2">할인 차감 후 실매출 기준</p>
-            </div>
-
-            <!-- KPI 2: Total Units Sold -->
-            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">총 판매수량</span>
-                    <span class="p-2 bg-emerald-50 text-emerald-600 rounded-lg"><i class="fa-solid fa-boxes-stacked"></i></span>
-                </div>
-                <div class="mt-2 flex items-baseline justify-between">
-                    <h3 id="kpi-total-qty" class="text-2xl font-bold text-slate-800">0 개</h3>
-                </div>
-                <p id="kpi-qty-sub" class="text-xs text-slate-500 mt-2">총 누적 판매 수량</p>
-            </div>
-
-            <!-- KPI 3: Total Discount -->
-            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">총 할인액 (할인율)</span>
-                    <span class="p-2 bg-rose-50 text-rose-600 rounded-lg"><i class="fa-solid fa-tags"></i></span>
-                </div>
-                <div class="mt-2 flex items-baseline justify-between">
-                    <h3 id="kpi-total-discount" class="text-2xl font-bold text-slate-800">0 원</h3>
-                </div>
-                <p id="kpi-discount-rate" class="text-xs text-rose-500 font-semibold mt-2">전체 대비 할인율 0%</p>
-            </div>
-
-            <!-- KPI 4: Promo Share -->
-            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">행사 상품 판매 비중</span>
-                    <span class="p-2 bg-amber-50 text-amber-600 rounded-lg"><i class="fa-solid fa-percent"></i></span>
-                </div>
-                <div class="mt-2 flex items-baseline justify-between">
-                    <h3 id="kpi-promo-ratio" class="text-2xl font-bold text-slate-800">0%</h3>
-                </div>
-                <p id="kpi-promo-sub" class="text-xs text-slate-500 mt-2">행사적용(Y) 수량 비중</p>
-            </div>
-        </section>
-
-        <!-- Analytics Visualizations -->
-        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Line Chart: Daily Sales Trend -->
-            <div class="lg:col-span-2 bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col">
-                <div class="flex items-center justify-between mb-4">
-                    <h2 class="font-bold text-slate-800 flex items-center gap-2">
-                        <i class="fa-solid fa-chart-area text-indigo-500"></i> 일자별 매출 및 판매수량 추이
-                    </h2>
-                </div>
-                <div class="relative flex-grow min-h-[300px]">
-                    <canvas id="trendChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Doughnut Chart: Category Share -->
-            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col">
-                <div class="flex items-center justify-between mb-4">
-                    <h2 class="font-bold text-slate-800 flex items-center gap-2">
-                        <i class="fa-solid fa-chart-pie text-indigo-500"></i> 카테고리별 매출 비중
-                    </h2>
-                </div>
-                <div class="relative flex-grow min-h-[300px] flex items-center justify-center">
-                    <canvas id="categoryChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Bar Chart: Top 5 Items -->
-            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col">
-                <div class="flex items-center justify-between mb-4">
-                    <h2 class="font-bold text-slate-800 flex items-center gap-2">
-                        <i class="fa-solid fa-trophy text-amber-500"></i> 베스트셀러 Top 5 (매출액)
-                    </h2>
-                </div>
-                <div class="relative flex-grow min-h-[280px]">
-                    <canvas id="topItemsChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Bar Chart: Store Performance -->
-            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col">
-                <div class="flex items-center justify-between mb-4">
-                    <h2 class="font-bold text-slate-800 flex items-center gap-2">
-                        <i class="fa-solid fa-store text-emerald-500"></i> 점포별 매출 분석
-                    </h2>
-                </div>
-                <div class="relative flex-grow min-h-[280px]">
-                    <canvas id="storeChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Pie Chart: Promo vs Normal -->
-            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col">
-                <div class="flex items-center justify-between mb-4">
-                    <h2 class="font-bold text-slate-800 flex items-center gap-2">
-                        <i class="fa-solid fa-bullhorn text-rose-500"></i> 행사 vs 일반 매출
-                    </h2>
-                </div>
-                <div class="relative flex-grow min-h-[280px] flex items-center justify-center">
-                    <canvas id="promoChart"></canvas>
-                </div>
-            </div>
-        </section>
-
-        <!-- Raw Data Table View -->
-        <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div class="flex items-center space-x-2">
-                    <i class="fa-solid fa-table text-indigo-600"></i>
-                    <h2 class="font-bold text-slate-800">상세 판매 내역</h2>
-                </div>
-                <div class="flex items-center space-x-3">
-                    <div class="relative">
-                        <input type="text" id="table-search" placeholder="상품명, 상품코드 검색..." onkeyup="applyFilters()" class="pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg w-48 sm:w-64 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-slate-400 text-xs"></i>
+                    <div class="w-full bg-slate-800 rounded-full h-3.5 overflow-hidden p-0.5 border border-slate-700">
+                        <div class="bg-gradient-to-r from-yellow-400 to-amber-500 h-full rounded-full transition-all duration-500" id="gaugeFill" style="width: 100%;"></div>
                     </div>
-                    <button onclick="exportToCSV()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-300 transition flex items-center gap-1">
-                        <i class="fa-solid fa-download"></i> CSV 다운로드
+                    <p class="text-xs text-slate-400 mt-2.5 text-center">※ 매일 12:00 센트럴점 냉장 매대 골든존에서 결제 순서대로 자동 적용됩니다.</p>
+                </div>
+
+                <!-- Hero Action Buttons -->
+                <div class="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+                    <button type="button" onclick="scrollToSection('calculatorSection')" class="px-8 py-4 rounded-2xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-bold text-base shadow-xl shadow-yellow-500/20 transition transform hover:-translate-y-0.5 flex items-center justify-center space-x-2">
+                        <span>🧮 내 맘대로 조합 계산하기</span>
+                    </button>
+                    <button type="button" onclick="openAlarmModal()" class="px-8 py-4 rounded-2xl bg-slate-900 hover:bg-slate-800 text-slate-200 hover:text-white font-bold text-base border border-slate-700 transition flex items-center justify-center space-x-2">
+                        <span>🔔 11:50 오픈 알림 예약</span>
                     </button>
                 </div>
             </div>
 
-            <div class="overflow-x-auto custom-scrollbar max-h-[400px]">
-                <table class="w-full text-xs text-left text-slate-600">
-                    <thead class="text-xs text-slate-700 uppercase bg-slate-50 sticky top-0 border-b border-slate-200 z-10">
-                        <tr>
-                            <th scope="col" class="px-4 py-3">일자 (YYYY-MM-DD)</th>
-                            <th scope="col" class="px-4 py-3">점포</th>
-                            <th scope="col" class="px-4 py-3">카테고리</th>
-                            <th scope="col" class="px-4 py-3">상품코드</th>
-                            <th scope="col" class="px-4 py-3">상품명</th>
-                            <th scope="col" class="px-4 py-3 text-right">판매수량</th>
-                            <th scope="col" class="px-4 py-3 text-right">정상단가</th>
-                            <th scope="col" class="px-4 py-3 text-right">할인액</th>
-                            <th scope="col" class="px-4 py-3 text-right">매출액</th>
-                            <th scope="col" class="px-4 py-3 text-center">행사적용</th>
-                        </tr>
-                    </thead>
-                    <tbody id="data-table-body" class="divide-y divide-slate-100">
-                        <!-- Dynamic Row Rendering -->
-                    </tbody>
-                </table>
-            </div>
-            
-            <div id="table-empty" class="hidden p-8 text-center text-slate-400">
-                <i class="fa-regular fa-folder-open text-3xl mb-2"></i>
-                <p>조건에 일치하는 데이터가 없습니다.</p>
+            <!-- Hero 3 Products Quick Preview Cards -->
+            <div class="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-5xl mx-auto">
+                <div class="glass-card rounded-2xl p-5 text-left border border-slate-800 hover:border-yellow-400/40 transition group">
+                    <div class="aspect-[4/3] rounded-xl overflow-hidden bg-slate-900 mb-4 relative">
+                        <img src="https://images.unsplash.com/photo-1541544741938-0af808871cc0?auto=format&fit=crop&w=600&q=80" alt="한끼 소불고기덮밥" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" onerror="this.src='https://placehold.co/600x450/1e293b/cbd5e1?text=Bulgogi+Bowl'">
+                        <span class="absolute top-2 left-2 bg-slate-950/80 text-yellow-300 text-xs font-bold px-2.5 py-1 rounded-lg backdrop-blur">든든 밥류</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-white group-hover:text-yellow-300 transition">한끼 소불고기덮밥</h3>
+                    <p class="text-xs text-slate-400 mt-1">정상가 5,900원</p>
+                </div>
+
+                <div class="glass-card rounded-2xl p-5 text-left border border-slate-800 hover:border-yellow-400/40 transition group">
+                    <div class="aspect-[4/3] rounded-xl overflow-hidden bg-slate-900 mb-4 relative">
+                        <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=600&q=80" alt="매콤 닭갈비볶음밥" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" onerror="this.src='https://placehold.co/600x450/1e293b/cbd5e1?text=Dakgalbi+Rice'">
+                        <span class="absolute top-2 left-2 bg-slate-950/80 text-red-400 text-xs font-bold px-2.5 py-1 rounded-lg backdrop-blur">매콤 밥류</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-white group-hover:text-yellow-300 transition">매콤 닭갈비볶음밥</h3>
+                    <p class="text-xs text-slate-400 mt-1">정상가 5,500원</p>
+                </div>
+
+                <div class="glass-card rounded-2xl p-5 text-left border border-slate-800 hover:border-yellow-400/40 transition group">
+                    <div class="aspect-[4/3] rounded-xl overflow-hidden bg-slate-900 mb-4 relative">
+                        <img src="https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=600&q=80" alt="훈제오리 샐러드랩" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" onerror="this.src='https://placehold.co/600x450/1e293b/cbd5e1?text=Duck+Salad+Wrap'">
+                        <span class="absolute top-2 left-2 bg-slate-950/80 text-emerald-400 text-xs font-bold px-2.5 py-1 rounded-lg backdrop-blur">신선 샐러드랩</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-white group-hover:text-yellow-300 transition">훈제오리 샐러드랩</h3>
+                    <p class="text-xs text-slate-400 mt-1">정상가 6,200원</p>
+                </div>
             </div>
         </section>
+
+        <!-- SECTION: WHY WE PIVOTED -->
+        <section class="py-24 bg-slate-900/50 border-y border-slate-800/80" id="whySection">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center max-w-3xl mx-auto mb-16">
+                    <span class="text-xs uppercase tracking-widest text-yellow-400 font-extrabold bg-yellow-400/10 px-3 py-1 rounded-full">고객 중심 프로모션 피벗 (Why)</span>
+                    <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mt-4">
+                        왜 바꿨을까요?<br><span class="text-yellow-400">고객 20명의 진짜 목소리</span>에 귀 기울였습니다
+                    </h2>
+                    <p class="mt-4 text-slate-300 text-base leading-relaxed">
+                        센트럴점 사전 고객 설문조사(N=20) 결과, 기존의 '공급자 중심 강제 묶음'은 고객에게 부담이었습니다.
+                    </p>
+                </div>
+
+                <!-- Survey Facts Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+                    <div class="glass-card rounded-3xl p-8 border border-slate-800 text-center">
+                        <div class="w-14 h-14 rounded-2xl bg-yellow-400/10 text-yellow-400 flex items-center justify-center text-2xl mx-auto mb-6 border border-yellow-400/20">👤</div>
+                        <div class="text-4xl font-black text-white">75%</div>
+                        <div class="text-yellow-400 font-bold mt-2 text-sm">혼밥족의 단독 식사</div>
+                        <p class="text-slate-400 text-sm mt-3 leading-relaxed">이용 고객의 4명 중 3명은 혼자 빠르게 점심/저녁을 해결하는 1인 고객이었습니다.</p>
+                    </div>
+                    <div class="glass-card rounded-3xl p-8 border border-slate-800 text-center">
+                        <div class="w-14 h-14 rounded-2xl bg-red-500/10 text-red-400 flex items-center justify-center text-2xl mx-auto mb-6 border border-red-500/20">🍜</div>
+                        <div class="text-4xl font-black text-white">65%</div>
+                        <div class="text-red-400 font-bold mt-2 text-sm">저가 대체재로 이탈</div>
+                        <p class="text-slate-400 text-sm mt-3 leading-relaxed">단품 가격 부담(30%)과 삼각김밥·컵라면(35%)으로의 이탈이 매출 감소의 핵심 원인이었습니다.</p>
+                    </div>
+                    <div class="glass-card rounded-3xl p-8 border border-slate-800 text-center">
+                        <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-2xl mx-auto mb-6 border border-emerald-500/20">🥗</div>
+                        <div class="text-4xl font-black text-white">65%</div>
+                        <div class="text-emerald-400 font-bold mt-2 text-sm">동시 구매 의향 확인</div>
+                        <p class="text-slate-400 text-sm mt-3 leading-relaxed">가벼운 샐러드랩과 든든한 밥류를 상황에 맞게 골라 먹고 싶다는 잠재 수요가 분명했습니다.</p>
+                    </div>
+                </div>
+
+                <!-- Before & After Comparison Box -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-5xl mx-auto items-stretch">
+                    <!-- Before -->
+                    <div class="bg-slate-950/80 border border-red-500/30 rounded-3xl p-8 flex flex-col justify-between">
+                        <div>
+                            <span class="bg-red-500/20 text-red-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">기존 프로모션의 한계</span>
+                            <h3 class="text-2xl font-bold text-white mt-4">공급자 중심의 강제 묶음</h3>
+                            <ul class="mt-6 space-y-4 text-slate-300 text-sm">
+                                <li class="flex items-start space-x-3"><span class="text-red-400 font-bold">❌</span> <span>반드시 [샐러드랩 1 + 덮밥 1] 강제 세트</span></li>
+                                <li class="flex items-start space-x-3"><span class="text-red-400 font-bold">❌</span> <span>총 결제액 11,000~12,000원대 과다</span></li>
+                                <li class="flex items-start space-x-3"><span class="text-red-400 font-bold">❌</span> <span>1인 혼밥족에게 "한 끼로 먹기엔 양과 가격이 너무 부담"</span></li>
+                                <li class="flex items-start space-x-3"><span class="text-red-400 font-bold">❌</span> <span>500원 소액 할인으로 체감 혜택 미미</span></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- After -->
+                    <div class="bg-gradient-to-br from-emerald-950/80 via-slate-900 to-slate-950 border-2 border-yellow-400/60 rounded-3xl p-8 flex flex-col justify-between shadow-2xl relative overflow-hidden">
+                        <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-yellow-400/10 rounded-full blur-2xl pointer-events-none"></div>
+                        <div>
+                            <span class="bg-yellow-400 text-slate-950 text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider">고객 맞춤형 재설정안 (Pivot)</span>
+                            <h3 class="text-2xl font-bold text-white mt-4">내 맘대로 2개 골라 담는 20% 할인!</h3>
+                            <ul class="mt-6 space-y-4 text-slate-200 text-sm">
+                                <li class="flex items-start space-x-3"><span class="text-yellow-400 font-bold">✅</span> <span><strong>밥+밥, 랩+랩 등 내가 원하는 조합 100% 자율 선택!</strong></span></li>
+                                <li class="flex items-start space-x-3"><span class="text-yellow-400 font-bold">✅</span> <span>결제 시 <strong>전체 금액의 20% 즉시 파격 할인!</strong></span></li>
+                                <li class="flex items-start space-x-3"><span class="text-yellow-400 font-bold">✅</span> <span>모든 조합 <strong>9,120원 ~ 9,920원 (전부 1만 원 이하!)</strong></span></li>
+                                <li class="flex items-start space-x-3"><span class="text-yellow-400 font-bold">✅</span> <span><strong>점심 든든 덮밥 + 저녁 가벼운 샐러드랩 = 하루 두 끼 해결!</strong></span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: INTERACTIVE PRICE CALCULATOR -->
+        <section class="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" id="calculatorSection">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <span class="text-xs uppercase tracking-widest text-yellow-400 font-extrabold bg-yellow-400/10 px-3 py-1 rounded-full">Interactive Simulator</span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mt-4">내 맘대로 조합 계산기</h2>
+                <p class="mt-4 text-slate-300 text-base leading-relaxed">원하는 상품을 담아보세요. 2개 이상 담으면 <strong>20% 즉시 할인</strong>과 <strong>1끼 환산가</strong>가 실시간 계산됩니다!</p>
+            </div>
+
+            <!-- Quick Presets -->
+            <div class="flex flex-wrap items-center justify-center gap-2.5 mb-10">
+                <span class="text-sm font-bold text-slate-300 mr-2">⚡ 추천 조합 바로 담기:</span>
+                <button type="button" onclick="applyPreset('hearty')" class="preset-btn px-4 py-2 rounded-xl bg-slate-800 hover:bg-yellow-400 hover:text-slate-950 text-slate-200 text-xs sm:text-sm font-semibold border border-slate-700 transition active">든든형 (덮밥+볶음밥)</button>
+                <button type="button" onclick="applyPreset('balanceA')" class="preset-btn px-4 py-2 rounded-xl bg-slate-800 hover:bg-yellow-400 hover:text-slate-950 text-slate-200 text-xs sm:text-sm font-semibold border border-slate-700 transition">영양균형형 (샐러드랩+불고기)</button>
+                <button type="button" onclick="applyPreset('balanceB')" class="preset-btn px-4 py-2 rounded-xl bg-slate-800 hover:bg-yellow-400 hover:text-slate-950 text-slate-200 text-xs sm:text-sm font-semibold border border-slate-700 transition">영양균형형 (샐러드랩+닭갈비)</button>
+                <button type="button" onclick="applyPreset('light')" class="preset-btn px-4 py-2 rounded-xl bg-slate-800 hover:bg-yellow-400 hover:text-slate-950 text-slate-200 text-xs sm:text-sm font-semibold border border-slate-700 transition">가벼운형 (샐러드랩 2개)</button>
+                <button type="button" onclick="applyPreset('reset')" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-red-500/20 text-red-400 text-xs sm:text-sm font-semibold border border-slate-800 transition">🔄 초기화</button>
+            </div>
+
+            <!-- Calculator Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                
+                <!-- Product Selector Cards (7 cols) -->
+                <div class="lg:col-span-7 space-y-4">
+                    
+                    <!-- Item 1: Bulgogi -->
+                    <div class="glass-card rounded-2xl p-5 border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div class="flex items-center space-x-4 w-full sm:w-auto">
+                            <div class="w-20 h-20 rounded-xl overflow-hidden bg-slate-900 shrink-0">
+                                <img src="https://images.unsplash.com/photo-1541544741938-0af808871cc0?auto=format&fit=crop&w=300&q=80" alt="한끼 소불고기덮밥" class="w-full h-full object-cover">
+                            </div>
+                            <div>
+                                <span class="bg-yellow-400/10 text-yellow-300 text-[11px] font-bold px-2 py-0.5 rounded">든든한 고기 한 끼</span>
+                                <h4 class="text-base font-bold text-white mt-1">한끼 소불고기덮밥</h4>
+                                <div class="text-yellow-400 font-extrabold text-sm mt-1">5,900<span class="text-xs text-slate-400 font-normal">원</span></div>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-3 bg-slate-900/90 px-4 py-2 rounded-xl border border-slate-800">
+                            <button type="button" onclick="updateQty('bulgogi', -1)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-bold flex items-center justify-center">-</button>
+                            <span class="w-8 text-center font-bold text-lg text-white" id="qty-bulgogi">1</span>
+                            <button type="button" onclick="updateQty('bulgogi', 1)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-bold flex items-center justify-center">+</button>
+                        </div>
+                    </div>
+
+                    <!-- Item 2: Dakgalbi -->
+                    <div class="glass-card rounded-2xl p-5 border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div class="flex items-center space-x-4 w-full sm:w-auto">
+                            <div class="w-20 h-20 rounded-xl overflow-hidden bg-slate-900 shrink-0">
+                                <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=300&q=80" alt="매콤 닭갈비볶음밥" class="w-full h-full object-cover">
+                            </div>
+                            <div>
+                                <span class="bg-red-500/10 text-red-400 text-[11px] font-bold px-2 py-0.5 rounded">매콤 활력 충전</span>
+                                <h4 class="text-base font-bold text-white mt-1">매콤 닭갈비볶음밥</h4>
+                                <div class="text-yellow-400 font-extrabold text-sm mt-1">5,500<span class="text-xs text-slate-400 font-normal">원</span></div>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-3 bg-slate-900/90 px-4 py-2 rounded-xl border border-slate-800">
+                            <button type="button" onclick="updateQty('chicken', -1)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-bold flex items-center justify-center">-</button>
+                            <span class="w-8 text-center font-bold text-lg text-white" id="qty-chicken">1</span>
+                            <button type="button" onclick="updateQty('chicken', 1)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-bold flex items-center justify-center">+</button>
+                        </div>
+                    </div>
+
+                    <!-- Item 3: Duck Wrap -->
+                    <div class="glass-card rounded-2xl p-5 border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div class="flex items-center space-x-4 w-full sm:w-auto">
+                            <div class="w-20 h-20 rounded-xl overflow-hidden bg-slate-900 shrink-0">
+                                <img src="https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=300&q=80" alt="훈제오리 샐러드랩" class="w-full h-full object-cover">
+                            </div>
+                            <div>
+                                <span class="bg-emerald-500/10 text-emerald-400 text-[11px] font-bold px-2 py-0.5 rounded">산뜻 다이어트</span>
+                                <h4 class="text-base font-bold text-white mt-1">훈제오리 샐러드랩</h4>
+                                <div class="text-yellow-400 font-extrabold text-sm mt-1">6,200<span class="text-xs text-slate-400 font-normal">원</span></div>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-3 bg-slate-900/90 px-4 py-2 rounded-xl border border-slate-800">
+                            <button type="button" onclick="updateQty('duck_wrap', -1)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-bold flex items-center justify-center">-</button>
+                            <span class="w-8 text-center font-bold text-lg text-white" id="qty-duck_wrap">0</span>
+                            <button type="button" onclick="updateQty('duck_wrap', 1)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-bold flex items-center justify-center">+</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Receipt Panel (5 cols) -->
+                <div class="lg:col-span-5 bg-slate-900/90 border-2 border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative">
+                    <div class="flex justify-between items-center pb-4 border-b border-slate-800">
+                        <span class="text-xs uppercase font-extrabold tracking-wider text-yellow-400">실시간 할인 영수증</span>
+                        <span class="text-xs font-semibold text-slate-400">이마트 센트럴점</span>
+                    </div>
+
+                    <!-- Dynamic Summary Items -->
+                    <div class="py-4 space-y-2 text-sm text-slate-300 min-h-[90px]" id="billItemSummary">
+                        <!-- Populated by JS -->
+                    </div>
+
+                    <div class="border-t border-dashed border-slate-800 my-4"></div>
+
+                    <div class="space-y-3 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">선택한 총 수량</span>
+                            <span class="font-bold text-white" id="totalQtyVal">2개</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">정상 합계 금액</span>
+                            <span class="font-bold text-slate-400 line-through" id="originalPriceVal">11,400원</span>
+                        </div>
+                        <div class="flex justify-between text-yellow-400 font-bold" id="discountRow">
+                            <span class="flex items-center space-x-1.5">
+                                <span class="bg-yellow-400 text-slate-950 text-[10px] px-1.5 py-0.5 rounded font-black">20% DC</span>
+                                <span>즉시 할인 금액</span>
+                            </span>
+                            <span id="discountAmountVal">-2,280원</span>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-slate-800 my-5"></div>
+
+                    <!-- Final Pay Box -->
+                    <div class="bg-slate-950 p-5 rounded-2xl border border-slate-800 text-center">
+                        <span class="text-xs text-slate-400 uppercase font-semibold">최종 결제 예상가</span>
+                        <div class="text-3xl sm:text-4xl font-black text-yellow-400 mt-1">
+                            <span id="finalPayVal">9,120</span><span class="text-lg text-white font-normal ml-1">원</span>
+                        </div>
+                    </div>
+
+                    <!-- Per Meal Badge -->
+                    <div class="mt-4 bg-green-500/10 border border-green-500/30 p-3 rounded-xl text-center text-green-300 text-xs sm:text-sm font-bold" id="perMealBadge">
+                        💡 한 끼당 환산가: <strong id="perMealPriceVal" class="text-yellow-300">약 4,560원</strong>!
+                    </div>
+
+                    <!-- Condition Status Notice -->
+                    <div class="mt-3 text-center text-xs font-medium text-slate-400" id="billConditionAlert">
+                        🎉 <strong>20% 할인 적용 완료!</strong> 전 조합 1만 원 미만 혜택
+                    </div>
+
+                    <p class="text-[11px] text-slate-500 mt-5 text-center leading-relaxed">
+                        * 매일 낮 12:00 선착순 20세트 결제 건에 한하여 20% 즉시 할인이 적용됩니다.<br>
+                        * 센트럴점 단독 오프라인 결제 전용 혜택입니다.
+                    </p>
+
+                    <button type="button" onclick="scrollToSection('storeSection')" class="mt-6 w-full py-4 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-bold text-sm shadow-lg shadow-green-900/40 transition">
+                        센트럴점 매장 냉장 매대로 가기 📍
+                    </button>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECTION: 3 LIFESTYLE CURATIONS -->
+        <section class="py-24 bg-slate-900/40 border-y border-slate-800/80" id="curationSection">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center max-w-3xl mx-auto mb-16">
+                    <span class="text-xs uppercase tracking-widest text-yellow-400 font-extrabold bg-yellow-400/10 px-3 py-1 rounded-full">취향대로 고르는 재미</span>
+                    <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mt-4">
+                        든든하게 VS 가볍게<br><span class="text-yellow-400">내 라이프스타일에 맞춘 3가지 추천</span>
+                    </h2>
+                    <p class="mt-4 text-slate-300 text-base leading-relaxed">한 끼에 다 드실 필요 없습니다. 오늘 점심과 저녁, 하루 두 끼를 9천원대에 똑똑하게 해결하세요!</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    
+                    <!-- Card 1 -->
+                    <div class="glass-card rounded-3xl p-6 border border-slate-800 flex flex-col justify-between">
+                        <div>
+                            <span class="bg-yellow-400/10 text-yellow-300 text-xs font-bold px-3 py-1 rounded-full">든든형 (최저가 실속)</span>
+                            <h3 class="text-xl font-bold text-white mt-4">덮밥 + 볶음밥</h3>
+                            <p class="text-xs text-slate-400 mt-1">밥류 2개로 하루 종일 든든한 탄수화물 에너지 충전</p>
+                            <div class="my-6 flex items-center justify-center space-x-2 bg-slate-950 p-4 rounded-2xl border border-slate-800">
+                                <img src="https://images.unsplash.com/photo-1541544741938-0af808871cc0?auto=format&fit=crop&w=150&q=80" class="w-16 h-16 object-cover rounded-xl" alt="덮밥">
+                                <span class="text-yellow-400 font-black text-xl">+</span>
+                                <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=150&q=80" class="w-16 h-16 object-cover rounded-xl" alt="볶음밥">
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center text-xs text-slate-400">
+                                <span>정상가 11,400원</span>
+                                <span class="bg-red-500/20 text-red-400 font-bold px-2 py-0.5 rounded">20% DC</span>
+                            </div>
+                            <div class="text-2xl font-black text-white mt-1">9,120원</div>
+                            <div class="text-xs text-yellow-400 font-semibold mt-1">1끼 환산가 단 <strong>4,560원</strong></div>
+                            <button type="button" onclick="applyPreset('hearty'); scrollToSection('calculatorSection');" class="mt-6 w-full py-3 rounded-xl bg-slate-800 hover:bg-yellow-400 hover:text-slate-950 text-white font-bold text-xs transition border border-slate-700">이 조합 담아보기</button>
+                        </div>
+                    </div>
+
+                    <!-- Card 2 (Popular) -->
+                    <div class="bg-gradient-to-b from-emerald-950/80 via-slate-900 to-slate-950 border-2 border-yellow-400 rounded-3xl p-6 flex flex-col justify-between relative shadow-2xl">
+                        <span class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-yellow-400 text-slate-950 text-xs font-black px-4 py-1 rounded-full uppercase tracking-wider shadow">MD 추천 인기 1위</span>
+                        <div>
+                            <span class="bg-emerald-500/10 text-emerald-400 text-xs font-bold px-3 py-1 rounded-full">영양균형형 (Day & Night)</span>
+                            <h3 class="text-xl font-bold text-white mt-4">샐러드랩 + 덮밥/볶음밥</h3>
+                            <p class="text-xs text-slate-400 mt-1">점심은 고기 덮밥으로 활력 충전, 저녁은 산뜻한 채소랩</p>
+                            <div class="my-6 flex items-center justify-center space-x-2 bg-slate-950 p-4 rounded-2xl border border-slate-800">
+                                <img src="https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=150&q=80" class="w-16 h-16 object-cover rounded-xl" alt="샐러드랩">
+                                <span class="text-yellow-400 font-black text-xl">+</span>
+                                <img src="https://images.unsplash.com/photo-1541544741938-0af808871cc0?auto=format&fit=crop&w=150&q=80" class="w-16 h-16 object-cover rounded-xl" alt="덮밥">
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center text-xs text-slate-400">
+                                <span>정상가 12,100원</span>
+                                <span class="bg-red-500/20 text-red-400 font-bold px-2 py-0.5 rounded">20% DC</span>
+                            </div>
+                            <div class="text-2xl font-black text-white mt-1">9,680원</div>
+                            <div class="text-xs text-yellow-400 font-semibold mt-1">1끼 환산가 단 <strong>4,840원</strong></div>
+                            <button type="button" onclick="applyPreset('balanceA'); scrollToSection('calculatorSection');" class="mt-6 w-full py-3 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-bold text-xs transition shadow-lg shadow-yellow-500/20">이 조합 담아보기</button>
+                        </div>
+                    </div>
+
+                    <!-- Card 3 -->
+                    <div class="glass-card rounded-3xl p-6 border border-slate-800 flex flex-col justify-between">
+                        <div>
+                            <span class="bg-emerald-500/10 text-emerald-400 text-xs font-bold px-3 py-1 rounded-full">가벼운형 (최대 할인 혜택)</span>
+                            <h3 class="text-xl font-bold text-white mt-4">샐러드랩 + 샐러드랩</h3>
+                            <p class="text-xs text-slate-400 mt-1">식단 관리와 다이어트를 위한 가볍고 산뜻한 두 끼</p>
+                            <div class="my-6 flex items-center justify-center space-x-2 bg-slate-950 p-4 rounded-2xl border border-slate-800">
+                                <img src="https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=150&q=80" class="w-16 h-16 object-cover rounded-xl" alt="샐러드랩">
+                                <span class="text-yellow-400 font-black text-xl">+</span>
+                                <img src="https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=150&q=80" class="w-16 h-16 object-cover rounded-xl" alt="샐러드랩">
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center text-xs text-slate-400">
+                                <span>정상가 12,400원</span>
+                                <span class="bg-red-500/20 text-red-400 font-bold px-2 py-0.5 rounded">20% DC</span>
+                            </div>
+                            <div class="text-2xl font-black text-white mt-1">9,920원</div>
+                            <div class="text-xs text-yellow-400 font-semibold mt-1">1끼 환산가 단 <strong>4,960원</strong> (최대 -2,480원 할인)</div>
+                            <button type="button" onclick="applyPreset('light'); scrollToSection('calculatorSection');" class="mt-6 w-full py-3 rounded-xl bg-slate-800 hover:bg-yellow-400 hover:text-slate-950 text-white font-bold text-xs transition border border-slate-700">이 조합 담아보기</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: CARD NEWS GALLERY -->
+        <section class="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" id="cardNewsSection">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <span class="text-xs uppercase tracking-widest text-yellow-400 font-extrabold bg-yellow-400/10 px-3 py-1 rounded-full">Visual Storytelling</span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mt-4">한눈에 보는 프로모션 카드뉴스</h2>
+                <p class="mt-4 text-slate-300 text-base leading-relaxed">공식 프로모션 카드뉴스 및 매장 포스터를 확인하세요.</p>
+            </div>
+
+            <!-- Card News Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+                <div class="glass-card rounded-2xl overflow-hidden border border-slate-800 group">
+                    <div class="aspect-[4/5] bg-slate-900 relative overflow-hidden flex items-center justify-center p-6 text-center">
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent z-10"></div>
+                        <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=600&q=80" alt="카드뉴스 1" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-500 opacity-70">
+                        <div class="relative z-20">
+                            <span class="bg-yellow-400 text-slate-950 font-black text-xs px-2.5 py-1 rounded-md">CARD 01 / 06</span>
+                            <h3 class="text-xl font-bold text-white mt-3">골라 담는 한 끼 2개 사면 20% 할인</h3>
+                            <p class="text-xs text-slate-300 mt-2">이마트 센트럴점 단독 프로모션 요약</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card rounded-2xl overflow-hidden border border-slate-800 group">
+                    <div class="aspect-[4/5] bg-slate-900 relative overflow-hidden flex items-center justify-center p-6 text-center">
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent z-10"></div>
+                        <img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80" alt="카드뉴스 2" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-500 opacity-70">
+                        <div class="relative z-20">
+                            <span class="bg-yellow-400 text-slate-950 font-black text-xs px-2.5 py-1 rounded-md">CARD 02 / 06</span>
+                            <h3 class="text-xl font-bold text-white mt-3">왜 바꿨을까? 고객 목소리</h3>
+                            <p class="text-xs text-slate-300 mt-2">혼밥족 75%의 리얼 보이스 반영</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card rounded-2xl overflow-hidden border border-slate-800 group">
+                    <div class="aspect-[4/5] bg-slate-900 relative overflow-hidden flex items-center justify-center p-6 text-center">
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent z-10"></div>
+                        <img src="https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=600&q=80" alt="카드뉴스 3" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-500 opacity-70">
+                        <div class="relative z-20">
+                            <span class="bg-yellow-400 text-slate-950 font-black text-xs px-2.5 py-1 rounded-md">CARD 03 / 06</span>
+                            <h3 class="text-xl font-bold text-white mt-3">원하는 2가지 자유롭게 선택</h3>
+                            <p class="text-xs text-slate-300 mt-2">소비자 중심 피벗 솔루션</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: STORE VISIT GUIDE & GOLDEN ZONE -->
+        <section class="py-24 bg-slate-900/60 border-y border-slate-800/80" id="storeSection">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center max-w-3xl mx-auto mb-16">
+                    <span class="text-xs uppercase tracking-widest text-yellow-400 font-extrabold bg-yellow-400/10 px-3 py-1 rounded-full">매장 방문 가이드</span>
+                    <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mt-4">
+                        오직 <span class="text-yellow-400">이마트 센트럴점</span>에서만!<br>냉장 매대 골든존을 찾아주세요
+                    </h2>
+                    <p class="mt-4 text-slate-300 text-base leading-relaxed">매일 점심 12:00 정각부터 선착순 20세트 타임어택이 시작됩니다.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                    
+                    <!-- Store Info & Steps -->
+                    <div class="space-y-6">
+                        <div class="flex items-center space-x-3">
+                            <span class="bg-green-500/20 text-green-400 text-xs font-bold px-3 py-1 rounded-full border border-green-500/30">단독 테스트베드 운영</span>
+                            <span class="text-xs text-slate-400">운영시간 10:00 ~ 22:00</span>
+                        </div>
+
+                        <h3 class="text-2xl font-bold text-white">이마트 센트럴점 지하 1층 신선식품 코너</h3>
+
+                        <div class="space-y-4">
+                            <div class="flex items-start space-x-4 bg-slate-950 p-4 rounded-2xl border border-slate-800">
+                                <div class="w-8 h-8 rounded-xl bg-yellow-400 text-slate-950 font-black flex items-center justify-center shrink-0">1</div>
+                                <div>
+                                    <h4 class="text-white font-bold text-sm">점심 12:00 정각 방문</h4>
+                                    <p class="text-slate-400 text-xs mt-1">이마트 센트럴점 지하 1층 냉장 간편식 매대로 방문하세요.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start space-x-4 bg-slate-950 p-4 rounded-2xl border border-slate-800">
+                                <div class="w-8 h-8 rounded-xl bg-yellow-400 text-slate-950 font-black flex items-center justify-center shrink-0">2</div>
+                                <div>
+                                    <h4 class="text-white font-bold text-sm">골든존 노란색 특가 띠지 확인</h4>
+                                    <p class="text-slate-400 text-xs mt-1">쇼케이스 중앙 2~3단에 부착된 [내 맘대로 2개 골라 20% 할인존] 형광 안내 바를 찾으세요.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start space-x-4 bg-slate-950 p-4 rounded-2xl border border-slate-800">
+                                <div class="w-8 h-8 rounded-xl bg-yellow-400 text-slate-950 font-black flex items-center justify-center shrink-0">3</div>
+                                <div>
+                                    <h4 class="text-white font-bold text-sm">원하는 2개 선택 후 계산대로</h4>
+                                    <p class="text-slate-400 text-xs mt-1">소불고기덮밥, 닭갈비볶음밥, 샐러드랩 중 자유롭게 2개를 집어 계산대(POS)로 가져가세요.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start space-x-4 bg-slate-950 p-4 rounded-2xl border border-slate-800">
+                                <div class="w-8 h-8 rounded-xl bg-yellow-400 text-slate-950 font-black flex items-center justify-center shrink-0">4</div>
+                                <div>
+                                    <h4 class="text-white font-bold text-sm">선착순 20세트 자동 20% 할인 적용!</h4>
+                                    <p class="text-slate-400 text-xs mt-1">포스 결제 시 자동으로 20%가 차감되어 9천 원대에 결제 완료됩니다.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Map Buttons -->
+                        <div class="flex flex-wrap gap-3 pt-2">
+                            <button type="button" onclick="openMap('naver')" class="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition flex items-center space-x-2">
+                                <i class="fa-solid fa-map-location-dot"></i> <span>네이버 지도 길찾기</span>
+                            </button>
+                            <button type="button" onclick="openMap('kakao')" class="px-5 py-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs transition flex items-center space-x-2">
+                                <i class="fa-solid fa-map"></i> <span>카카오맵 길찾기</span>
+                            </button>
+                            <button type="button" onclick="copyAddress()" class="px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition border border-slate-700">
+                                📋 매장 주소 복사
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Visual Shelf Graphic Box -->
+                    <div class="glass-card rounded-3xl p-8 border border-slate-800 relative">
+                        <div class="flex items-center space-x-3 mb-6">
+                            <span class="text-3xl">🐳</span>
+                            <div>
+                                <h4 class="text-white font-bold">고래잇의 매장 꿀팁!</h4>
+                                <p class="text-xs text-slate-300">"점심 12시 5~10분 전에 미리 오시면 원하는 메뉴를 여유롭게 득템할 수 있어요!"</p>
+                            </div>
+                        </div>
+
+                        <!-- Shelf Graphic -->
+                        <div class="space-y-3 bg-slate-950 p-6 rounded-2xl border border-slate-800">
+                            <div class="p-3 bg-slate-900 rounded-xl text-center text-xs text-slate-400 border border-slate-800">
+                                일반 냉장 간편식 코너
+                            </div>
+                            <div class="p-4 bg-gradient-to-r from-yellow-500/20 via-amber-500/30 to-yellow-500/20 rounded-xl border-2 border-yellow-400 text-center relative shadow-lg">
+                                <span class="bg-yellow-400 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-wider">⭐ GOLDEN ZONE ⭐</span>
+                                <div class="text-yellow-300 font-extrabold text-sm mt-1">[내 맘대로 2개 20% 할인 특가존]</div>
+                                <div class="mt-2 flex flex-wrap justify-center gap-2">
+                                    <span class="bg-slate-950/80 text-white text-[11px] px-2.5 py-1 rounded-lg">훈제오리 샐러드랩</span>
+                                    <span class="bg-slate-950/80 text-white text-[11px] px-2.5 py-1 rounded-lg">소불고기덮밥</span>
+                                    <span class="bg-slate-950/80 text-white text-[11px] px-2.5 py-1 rounded-lg">닭갈비볶음밥</span>
+                                </div>
+                            </div>
+                            <div class="p-3 bg-slate-900 rounded-xl text-center text-xs text-slate-400 border border-slate-800">
+                                냉장 음료 및 사이드 코너
+                            </div>
+                        </div>
+
+                        <div class="mt-6 space-y-2 text-xs text-slate-300">
+                            <div class="flex justify-between py-1 border-b border-slate-800/80">
+                                <span class="text-slate-400">행사 기간:</span>
+                                <span class="font-semibold text-white">2026.10.21(수) ~ 11.03(화) (14일간)</span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-slate-800/80">
+                                <span class="text-slate-400">타임어택:</span>
+                                <span class="font-semibold text-yellow-400">매일 낮 12:00 선착순 20세트 한정</span>
+                            </div>
+                            <div class="flex justify-between py-1">
+                                <span class="text-slate-400">대상 매장:</span>
+                                <span class="font-semibold text-white">이마트 센트럴점 1개점 단독</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: FAQ -->
+        <section class="py-24 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8" id="faqSection">
+            <div class="text-center mb-16">
+                <span class="text-xs uppercase tracking-widest text-yellow-400 font-extrabold bg-yellow-400/10 px-3 py-1 rounded-full">자주 묻는 질문</span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mt-4">궁금한 점을 확인하세요</h2>
+            </div>
+
+            <div class="space-y-4">
+                <div class="glass-card rounded-2xl border border-slate-800 overflow-hidden">
+                    <button type="button" onclick="toggleFaq(this)" class="w-full p-6 text-left font-bold text-white flex justify-between items-center hover:bg-slate-900/50 transition">
+                        <span>Q. 동일한 상품으로만 2개를 골라도 20% 할인이 되나요?</span>
+                        <span class="text-yellow-400 font-black text-xl faq-icon">+</span>
+                    </button>
+                    <div class="faq-content hidden px-6 pb-6 text-sm text-slate-300 leading-relaxed border-t border-slate-800/60 pt-4">
+                        네! 샐러드랩 2개, 혹은 소불고기덮밥 2개 등 동일한 상품을 2개 선택하셔도 <strong>무조건 전체 금액의 20% 즉시 할인</strong>이 동일하게 적용됩니다. 내 취향에 맞게 자유롭게 담으세요!
+                    </div>
+                </div>
+
+                <div class="glass-card rounded-2xl border border-slate-800 overflow-hidden">
+                    <button type="button" onclick="toggleFaq(this)" class="w-full p-6 text-left font-bold text-white flex justify-between items-center hover:bg-slate-900/50 transition">
+                        <span>Q. 선착순 20세트는 어떻게 마감되나요?</span>
+                        <span class="text-yellow-400 font-black text-xl faq-icon">+</span>
+                    </button>
+                    <div class="faq-content hidden px-6 pb-6 text-sm text-slate-300 leading-relaxed border-t border-slate-800/60 pt-4">
+                        매일 낮 12:00:00부터 센트럴점 계산대(POS)에서 결제 순서대로 선착순 20건에 한해 20% 할인이 자동으로 적용되며, 20세트가 소진되면 당일 프로모션 할인은 자동으로 마감됩니다.
+                    </div>
+                </div>
+
+                <div class="glass-card rounded-2xl border border-slate-800 overflow-hidden">
+                    <button type="button" onclick="toggleFaq(this)" class="w-full p-6 text-left font-bold text-white flex justify-between items-center hover:bg-slate-900/50 transition">
+                        <span>Q. 3개 이상 구매할 때도 할인이 적용되나요?</span>
+                        <span class="text-yellow-400 font-black text-xl faq-icon">+</span>
+                    </button>
+                    <div class="faq-content hidden px-6 pb-6 text-sm text-slate-300 leading-relaxed border-t border-slate-800/60 pt-4">
+                        행사 대상 3종 상품에 한해 2개 이상 구매 시, 계산된 해당 간편식 전체 금액에서 20% 할인이 적용됩니다. (단, 매일 1인 1회 결제 세트 기준)
+                    </div>
+                </div>
+
+                <div class="glass-card rounded-2xl border border-slate-800 overflow-hidden">
+                    <button type="button" onclick="toggleFaq(this)" class="w-full p-6 text-left font-bold text-white flex justify-between items-center hover:bg-slate-900/50 transition">
+                        <span>Q. 통신사 멤버십이나 카드사 추가 할인과 중복 가능한가요?</span>
+                        <span class="text-yellow-400 font-black text-xl faq-icon">+</span>
+                    </button>
+                    <div class="faq-content hidden px-6 pb-6 text-sm text-slate-300 leading-relaxed border-t border-slate-800/60 pt-4">
+                        본 행사는 1만 원 이하 파격 특가 타임어택 프로모션이므로 타 제휴 할인 쿠폰 및 통신사 중복 할인은 불가합니다.
+                    </div>
+                </div>
+
+                <div class="glass-card rounded-2xl border border-slate-800 overflow-hidden">
+                    <button type="button" onclick="toggleFaq(this)" class="w-full p-6 text-left font-bold text-white flex justify-between items-center hover:bg-slate-900/50 transition">
+                        <span>Q. 구입 후 오늘 점심과 저녁에 나눠 먹어도 안전한가요?</span>
+                        <span class="text-yellow-400 font-black text-xl faq-icon">+</span>
+                    </button>
+                    <div class="faq-content hidden px-6 pb-6 text-sm text-slate-300 leading-relaxed border-t border-slate-800/60 pt-4">
+                        네! 구매 후 즉시 점심으로 덮밥을 전자레인지에 데워 드시고, 남은 샐러드랩은 냉장(0~10℃) 보관하신 뒤 당일 저녁 식사로 신선하고 산뜻하게 즐기실 수 있도록 기획되었습니다.
+                    </div>
+                </div>
+            </div>
+        </section>
+
     </main>
 
+    <!-- Sticky Bottom Floating Bar -->
+    <aside class="fixed bottom-0 left-0 right-0 z-40 bg-slate-950/90 backdrop-blur-xl border-t border-slate-800 p-3 sm:p-4 shadow-2xl">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="flex items-center space-x-3 text-center sm:text-left">
+                <span class="bg-yellow-400 text-slate-950 font-black text-xs px-2.5 py-1 rounded-full">🔥 매일 12시 선착순 20세트</span>
+                <span class="text-xs sm:text-sm font-bold text-white">2개 사면 20% 즉시 할인 (9천원대)</span>
+            </div>
+            <div class="flex items-center space-x-3 w-full sm:w-auto justify-center">
+                <button type="button" onclick="copyAddress()" class="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 text-xs font-bold border border-slate-700 transition">
+                    💬 링크 복사
+                </button>
+                <button type="button" onclick="scrollToSection('storeSection')" class="px-6 py-2.5 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 text-xs sm:text-sm font-bold shadow-lg shadow-yellow-500/20 transition">
+                    센트럴점 매장 길찾기 📍
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Footer -->
+    <footer class="bg-slate-950 border-t border-slate-900 py-16 mb-16 text-center text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
+            <div class="text-lg font-extrabold text-white tracking-wider">
+                <span class="text-green-500">emart</span> 센트럴점
+            </div>
+            <p class="leading-relaxed max-w-2xl mx-auto">
+                본 프로모션은 이마트 센트럴점 단독 1차 테스트베드 행사입니다.<br>
+                행사 기간: 2026년 10월 21일(수) ~ 11월 3일(화), 14일간 | 매일 12:00 선착순 20세트 한정<br>
+                소비자 상담 및 문의: 이마트 센트럴점 고객만족센터
+            </p>
+            <div class="flex justify-center space-x-6 pt-4">
+                <button type="button" onclick="copyAddress()" class="hover:text-yellow-400 transition font-semibold">🔗 프로모션 링크 복사</button>
+                <button type="button" onclick="window.scrollTo({top:0, behavior:'smooth'})" class="hover:text-yellow-400 transition font-semibold">맨 위로 가기 ↑</button>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Notification Modal (Custom Custom Box instead of alert) -->
+    <div id="alarmModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
+        <div class="glass-card rounded-3xl p-6 sm:p-8 max-w-md w-full border border-slate-700 shadow-2xl relative text-center">
+            <div class="w-16 h-16 rounded-2xl bg-yellow-400/10 text-yellow-400 text-2xl flex items-center justify-center mx-auto mb-4 border border-yellow-400/20">
+                🔔
+            </div>
+            <h3 class="text-xl font-bold text-white">타임어택 오픈 알림 예약</h3>
+            <p class="text-xs text-slate-300 mt-2 leading-relaxed">매일 오전 11시 50분, 선착순 20세트 오픈 10분 전 푸시 알림을 예약해 드립니다.</p>
+            
+            <div class="mt-6 space-y-3">
+                <input type="text" id="phoneInput" placeholder="휴대폰 번호 (- 없이 입력)" class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm focus:outline-none focus:border-yellow-400">
+                <button type="button" onclick="submitAlarm()" class="w-full py-3.5 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-bold text-sm shadow-lg transition">알림 신청 완료하기</button>
+            </div>
+
+            <button type="button" onclick="closeAlarmModal()" class="mt-4 text-xs text-slate-400 hover:text-white underline">닫기</button>
+        </div>
+    </div>
+
+    <!-- Message Toast -->
+    <div id="toastMessage" class="fixed bottom-24 left-1/2 transform -translate-x-1/2 z-50 bg-slate-900 text-white px-6 py-3 rounded-2xl border border-yellow-400/50 shadow-2xl text-xs sm:text-sm font-semibold opacity-0 pointer-events-none transition-all duration-300">
+        메시지가 복사되었습니다!
+    </div>
+
     <script>
-        // Utility function to format date into standard YYYY-MM-DD format
-        function formatDateToYYYYMMDD(dateInput) {
-            if (!dateInput) return '';
-            
-            let d = new Date(dateInput);
-            if (isNaN(d.getTime())) {
-                const cleanStr = String(dateInput).replace(/[^0-9]/g, '');
-                if (cleanStr.length === 8) {
-                    return `${cleanStr.substring(0,4)}-${cleanStr.substring(4,6)}-${cleanStr.substring(6,8)}`;
-                }
-                return String(dateInput);
-            }
-            
-            const year = d.getFullYear();
-            const month = String(d.getMonth() + 1).padStart(2, '0');
-            const day = String(d.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        }
-
-        // Quick Date Preset Handler
-        function setDatePreset(type) {
-            const dates = rawData.map(d => d.date).filter(Boolean).sort();
-            if (dates.length === 0) return;
-
-            const maxDateStr = dates[dates.length - 1];
-            const maxDate = new Date(maxDateStr);
-
-            let startDateStr = dates[0];
-            let endDateStr = maxDateStr;
-
-            if (type === '7days') {
-                const prev7 = new Date(maxDate);
-                prev7.setDate(prev7.getDate() - 6);
-                startDateStr = formatDateToYYYYMMDD(prev7);
-            } else if (type === '30days') {
-                const prev30 = new Date(maxDate);
-                prev30.setDate(prev30.getDate() - 29);
-                startDateStr = formatDateToYYYYMMDD(prev30);
-            } else if (type === 'month') {
-                const year = maxDate.getFullYear();
-                const month = String(maxDate.getMonth() + 1).padStart(2, '0');
-                startDateStr = `${year}-${month}-01`;
-            }
-
-            document.getElementById('start-date').value = startDateStr;
-            document.getElementById('end-date').value = endDateStr;
-            
-            updateDateRangeDisplay(startDateStr, endDateStr);
-            applyFilters();
-        }
-
-        function updateCustomDateFilter() {
-            const s = document.getElementById('start-date').value;
-            const e = document.getElementById('end-date').value;
-            updateDateRangeDisplay(s, e);
-            applyFilters();
-        }
-
-        function updateDateRangeDisplay(startDate, endDate) {
-            const label = document.getElementById('selected-date-range-text');
-            if (startDate && endDate) {
-                label.innerText = `${startDate} ~ ${endDate}`;
-            } else if (startDate) {
-                label.innerText = `${startDate} 이후`;
-            } else if (endDate) {
-                label.innerText = `${endDate} 이전`;
-            } else {
-                label.innerText = `전체 기간`;
-            }
-        }
-
-        // Default Sample Data
-        const SAMPLE_DATA = [
-            { date: "2026-08-01", store: "센트럴점", category: "냉장 간편식", code: "RM-101", name: "한끼 소불고기", qty: 44, price: 5900, discount: 0, sales: 259600, promo: "N" },
-            { date: "2026-08-01", store: "센트럴점", category: "냉장 간편식", code: "RM-102", name: "매콤 닭갈비", qty: 49, price: 5500, discount: 0, sales: 269500, promo: "N" },
-            { date: "2026-08-01", store: "강남점", category: "냉장 간편식", code: "RM-101", name: "한끼 소불고기", qty: 62, price: 5900, discount: 59000, sales: 306800, promo: "Y" },
-            { date: "2026-08-01", store: "강남점", category: "음료/주류", code: "DR-201", name: "제로 스파클링 500ml", qty: 120, price: 1800, discount: 21600, sales: 194400, promo: "Y" },
-            { date: "2026-08-02", store: "센트럴점", category: "음료/주류", code: "DR-201", name: "제로 스파클링 500ml", qty: 85, price: 1800, discount: 0, sales: 153000, promo: "N" },
-            { date: "2026-08-02", store: "홍대점", category: "베이커리", code: "BK-301", name: "프리미엄 식빵", qty: 30, price: 3800, discount: 0, sales: 114000, promo: "N" },
-            { date: "2026-08-02", store: "강남점", category: "베이커리", code: "BK-302", name: "크림 든 단팥빵", qty: 75, price: 2200, discount: 16500, sales: 148500, promo: "Y" },
-            { date: "2026-08-03", store: "센트럴점", category: "냉장 간편식", code: "RM-103", name: "돼지김치찌개 키트", qty: 55, price: 6800, discount: 37400, sales: 336600, promo: "Y" },
-            { date: "2026-08-03", store: "홍대점", category: "냉장 간편식", code: "RM-101", name: "한끼 소불고기", qty: 38, price: 5900, discount: 0, sales: 224200, promo: "N" },
-            { date: "2026-08-03", store: "강남점", category: "음료/주류", code: "DR-202", name: "유기농 녹차 1.5L", qty: 40, price: 2500, discount: 0, sales: 100000, promo: "N" },
-            { date: "2026-08-04", store: "센트럴점", category: "베이커리", code: "BK-301", name: "프리미엄 식빵", qty: 42, price: 3800, discount: 0, sales: 159600, promo: "N" },
-            { date: "2026-08-04", store: "홍대점", category: "음료/주류", code: "DR-201", name: "제로 스파클링 500ml", qty: 110, price: 1800, discount: 19800, sales: 178200, promo: "Y" },
-            { date: "2026-08-05", store: "강남점", category: "냉장 간편식", code: "RM-102", name: "매콤 닭갈비", qty: 80, price: 5500, discount: 44000, sales: 396000, promo: "Y" },
-            { date: "2026-08-05", store: "센트럴점", category: "음료/주류", code: "DR-202", name: "유기농 녹차 1.5L", qty: 35, price: 2500, discount: 0, sales: 87500, promo: "N" },
-            { date: "2026-08-05", store: "홍대점", category: "베이커리", code: "BK-302", name: "크림 든 단팥빵", qty: 50, price: 2200, discount: 0, sales: 110000, promo: "N" }
-        ];
-
-        let rawData = [];
-        let filteredData = [];
-        let charts = {};
-
-        // Initialize Application
-        window.onload = function() {
-            loadSampleData();
+        // Product Catalog Data
+        const products = {
+            bulgogi: { name: '한끼 소불고기덮밥', price: 5900 },
+            chicken: { name: '매콤 닭갈비볶음밥', price: 5500 },
+            duck_wrap: { name: '훈제오리 샐러드랩', price: 6200 }
         };
 
-        function loadSampleData() {
-            rawData = SAMPLE_DATA.map(item => ({
-                ...item,
-                date: formatDateToYYYYMMDD(item.date)
-            }));
-            initDropdowns();
-            resetFilters();
+        // Current Quantities State
+        let quantities = {
+            bulgogi: 1,
+            chicken: 1,
+            duck_wrap: 0
+        };
+
+        // DOM Elements
+        const qtyBulgogiEl = document.getElementById('qty-bulgogi');
+        const qtyChickenEl = document.getElementById('qty-chicken');
+        const qtyDuckWrapEl = document.getElementById('qty-duck_wrap');
+        const totalQtyValEl = document.getElementById('totalQtyVal');
+        const originalPriceValEl = document.getElementById('originalPriceVal');
+        const discountAmountValEl = document.getElementById('discountAmountVal');
+        const finalPayValEl = document.getElementById('finalPayVal');
+        const perMealPriceValEl = document.getElementById('perMealPriceVal');
+        const billItemSummaryEl = document.getElementById('billItemSummary');
+        const discountRowEl = document.getElementById('discountRow');
+        const billConditionAlertEl = document.getElementById('billConditionAlert');
+
+        // Update Quantity Function
+        function updateQty(id, change) {
+            let newQty = quantities[id] + change;
+            if (newQty < 0) newQty = 0;
+            quantities[id] = newQty;
+            
+            // Update UI text
+            if(id === 'bulgogi') qtyBulgogiEl.innerText = newQty;
+            if(id === 'chicken') qtyChickenEl.innerText = newQty;
+            if(id === 'duck_wrap') qtyDuckWrapEl.innerText = newQty;
+
+            calculateBill();
         }
 
-        function initDropdowns() {
-            const stores = [...new Set(rawData.map(item => item.store))];
-            const categories = [...new Set(rawData.map(item => item.category))];
+        // Calculate Bill & Apply 20% Rule if total qty >= 2
+        function calculateBill() {
+            let totalQty = 0;
+            let originalTotal = 0;
+            let summaryHTML = '';
 
-            const storeSelect = document.getElementById('store-filter');
-            storeSelect.innerHTML = '<option value="ALL">전체 점포</option>';
-            stores.forEach(s => {
-                storeSelect.innerHTML += `<option value="${s}">${s}</option>`;
-            });
-
-            const categorySelect = document.getElementById('category-filter');
-            categorySelect.innerHTML = '<option value="ALL">전체 카테고리</option>';
-            categories.forEach(c => {
-                categorySelect.innerHTML += `<option value="${c}">${c}</option>`;
-            });
-
-            const dates = rawData.map(d => d.date).filter(Boolean).sort();
-            if(dates.length > 0) {
-                document.getElementById('start-date').value = dates[0];
-                document.getElementById('end-date').value = dates[dates.length - 1];
-                updateDateRangeDisplay(dates[0], dates[dates.length - 1]);
+            for (let key in quantities) {
+                let q = quantities[key];
+                if (q > 0) {
+                    totalQty += q;
+                    let itemTotal = products[key].price * q;
+                    originalTotal += itemTotal;
+                    summaryHTML += `<div class="flex justify-between text-xs"><span>${products[key].name} x ${q}</span><span>${itemTotal.toLocaleString()}원</span></div>`;
+                }
             }
-        }
 
-        function resetFilters() {
-            document.getElementById('store-filter').value = "ALL";
-            document.getElementById('category-filter').value = "ALL";
-            document.getElementById('promo-filter').value = "ALL";
-            document.getElementById('table-search').value = "";
-            
-            const dates = rawData.map(d => d.date).filter(Boolean).sort();
-            if(dates.length > 0) {
-                document.getElementById('start-date').value = dates[0];
-                document.getElementById('end-date').value = dates[dates.length - 1];
-                updateDateRangeDisplay(dates[0], dates[dates.length - 1]);
+            if (totalQty === 0) {
+                summaryHTML = '<div class="text-slate-500 text-xs text-center py-4">상품을 1개 이상 선택해주세요</div>';
             }
-            applyFilters();
-        }
 
-        function applyFilters() {
-            const startDate = document.getElementById('start-date').value;
-            const endDate = document.getElementById('end-date').value;
-            const selectedStore = document.getElementById('store-filter').value;
-            const selectedCategory = document.getElementById('category-filter').value;
-            const selectedPromo = document.getElementById('promo-filter').value;
-            const searchQuery = document.getElementById('table-search').value.toLowerCase().trim();
+            billItemSummaryEl.innerHTML = summaryHTML;
+            totalQtyValEl.innerText = totalQty + '개';
+            originalPriceValEl.innerText = originalTotal.toLocaleString() + '원';
 
-            filteredData = rawData.filter(item => {
-                const matchDate = (!startDate || item.date >= startDate) && (!endDate || item.date <= endDate);
-                const matchStore = selectedStore === "ALL" || item.store === selectedStore;
-                const matchCategory = selectedCategory === "ALL" || item.category === selectedCategory;
-                const matchPromo = selectedPromo === "ALL" || item.promo === selectedPromo;
-                const matchSearch = !searchQuery || 
-                                    item.name.toLowerCase().includes(searchQuery) || 
-                                    item.code.toLowerCase().includes(searchQuery);
+            let discountAmount = 0;
+            let finalPay = originalTotal;
 
-                return matchDate && matchStore && matchCategory && matchPromo && matchSearch;
-            });
-
-            document.getElementById('data-count').innerText = filteredData.length;
-
-            updateKPIs();
-            renderTable();
-            renderCharts();
-        }
-
-        // Update KPI Summary Cards
-        function updateKPIs() {
-            const totalSales = filteredData.reduce((acc, cur) => acc + (cur.sales || 0), 0);
-            const totalQty = filteredData.reduce((acc, cur) => acc + (cur.qty || 0), 0);
-            const totalDiscount = filteredData.reduce((acc, cur) => acc + (cur.discount || 0), 0);
-            const totalNormalSales = filteredData.reduce((acc, cur) => acc + ((cur.price || 0) * (cur.qty || 0)), 0);
-            
-            const discountRate = totalNormalSales > 0 ? ((totalDiscount / totalNormalSales) * 100).toFixed(1) : 0;
-            
-            const promoQty = filteredData.filter(i => i.promo === 'Y').reduce((acc, cur) => acc + (cur.qty || 0), 0);
-            const promoRatio = totalQty > 0 ? ((promoQty / totalQty) * 100).toFixed(1) : 0;
-
-            document.getElementById('kpi-total-sales').innerText = totalSales.toLocaleString() + ' 원';
-            document.getElementById('kpi-total-qty').innerText = totalQty.toLocaleString() + ' 개';
-            document.getElementById('kpi-total-discount').innerText = totalDiscount.toLocaleString() + ' 원';
-            document.getElementById('kpi-discount-rate').innerText = `전체 대비 할인율 ${discountRate}%`;
-            document.getElementById('kpi-promo-ratio').innerText = promoRatio + '%';
-        }
-
-        // Render Table Rows
-        function renderTable() {
-            const tbody = document.getElementById('data-table-body');
-            const emptyMsg = document.getElementById('table-empty');
-            tbody.innerHTML = '';
-
-            if (filteredData.length === 0) {
-                emptyMsg.classList.remove('hidden');
-                return;
+            if (totalQty >= 2) {
+                discountAmount = Math.round(originalTotal * 0.20);
+                finalPay = originalTotal - discountAmount;
+                discountRowEl.style.display = 'flex';
+                discountAmountValEl.innerText = '-' + discountAmount.toLocaleString() + '원';
+                billConditionAlertEl.innerHTML = '🎉 <strong>20% 할인 적용 완료!</strong> 전 조합 1만 원 미만 혜택';
+                billConditionAlertEl.className = 'mt-3 text-center text-xs font-medium text-yellow-400';
             } else {
-                emptyMsg.classList.add('hidden');
+                discountRowEl.style.display = 'none';
+                billConditionAlertEl.innerHTML = '⚠️ <strong>2개 이상 선택 시</strong> 20% 즉시 할인이 적용됩니다!';
+                billConditionAlertEl.className = 'mt-3 text-center text-xs font-medium text-red-400';
             }
 
-            filteredData.forEach(item => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50 transition border-b border-slate-100";
-                tr.innerHTML = `
-                    <td class="px-4 py-3 whitespace-nowrap font-mono text-xs text-indigo-900 font-semibold">${item.date}</td>
-                    <td class="px-4 py-3 whitespace-nowrap font-medium text-slate-800">${item.store}</td>
-                    <td class="px-4 py-3 whitespace-nowrap"><span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-xs">${item.category}</span></td>
-                    <td class="px-4 py-3 whitespace-nowrap font-mono text-xs text-slate-500">${item.code}</td>
-                    <td class="px-4 py-3 whitespace-nowrap font-medium text-slate-900">${item.name}</td>
-                    <td class="px-4 py-3 whitespace-nowrap text-right font-semibold text-slate-700">${(item.qty || 0).toLocaleString()}</td>
-                    <td class="px-4 py-3 whitespace-nowrap text-right">${(item.price || 0).toLocaleString()} 원</td>
-                    <td class="px-4 py-3 whitespace-nowrap text-right text-rose-500">${item.discount ? '-' + item.discount.toLocaleString() + ' 원' : '0 원'}</td>
-                    <td class="px-4 py-3 whitespace-nowrap text-right font-bold text-indigo-900">${(item.sales || 0).toLocaleString()} 원</td>
-                    <td class="px-4 py-3 whitespace-nowrap text-center">
-                        <span class="px-2 py-0.5 text-[11px] font-bold rounded-full ${item.promo === 'Y' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'}">
-                            ${item.promo}
-                        </span>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
+            finalPayValEl.innerText = finalPay.toLocaleString();
+
+            if (totalQty > 0) {
+                let perMeal = Math.round(finalPay / totalQty);
+                perMealPriceValEl.innerText = '약 ' + perMeal.toLocaleString() + '원';
+            } else {
+                perMealPriceValEl.innerText = '0원';
+            }
         }
 
-        // Render Interactive Charts
-        function renderCharts() {
-            // 1. Daily Trend Chart
-            const dateMap = {};
-            filteredData.forEach(item => {
-                if (!dateMap[item.date]) dateMap[item.date] = { sales: 0, qty: 0 };
-                dateMap[item.date].sales += item.sales;
-                dateMap[item.date].qty += item.qty;
-            });
-            const sortedDates = Object.keys(dateMap).sort();
-            const trendSales = sortedDates.map(d => dateMap[d].sales);
-            const trendQtys = sortedDates.map(d => dateMap[d].qty);
+        // Apply Presets
+        function applyPreset(presetType) {
+            // reset all
+            quantities = { bulgogi: 0, chicken: 0, duck_wrap: 0 };
 
-            if (charts.trend) charts.trend.destroy();
-            charts.trend = new Chart(document.getElementById('trendChart'), {
-                type: 'line',
-                data: {
-                    labels: sortedDates,
-                    datasets: [
-                        { label: '매출액 (원)', data: trendSales, borderColor: '#6366f1', backgroundColor: 'rgba(99, 102, 241, 0.1)', tension: 0.3, fill: true, yAxisID: 'y' },
-                        { label: '판매수량 (개)', data: trendQtys, borderColor: '#10b981', backgroundColor: 'transparent', borderDash: [4, 4], tension: 0.3, yAxisID: 'y1' }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: { type: 'linear', display: true, position: 'left', grid: { color: '#f1f5f9' } },
-                        y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false } }
-                    }
-                }
-            });
+            if (presetType === 'hearty') {
+                quantities.bulgogi = 1;
+                quantities.chicken = 1;
+            } else if (presetType === 'balanceA') {
+                quantities.duck_wrap = 1;
+                quantities.bulgogi = 1;
+            } else if (presetType === 'balanceB') {
+                quantities.duck_wrap = 1;
+                quantities.chicken = 1;
+            } else if (presetType === 'light') {
+                quantities.duck_wrap = 2;
+            } else if (presetType === 'reset') {
+                quantities.bulgogi = 1;
+                quantities.chicken = 1;
+            }
 
-            // 2. Category Donut Chart
-            const catMap = {};
-            filteredData.forEach(item => {
-                catMap[item.category] = (catMap[item.category] || 0) + item.sales;
-            });
-            if (charts.category) charts.category.destroy();
-            charts.category = new Chart(document.getElementById('categoryChart'), {
-                type: 'doughnut',
-                data: {
-                    labels: Object.keys(catMap),
-                    datasets: [{ data: Object.values(catMap), backgroundColor: ['#6366f1', '#3b82f6', '#10b981', '#f59e0b', '#ec4899'] }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
-            });
+            qtyBulgogiEl.innerText = quantities.bulgogi;
+            qtyChickenEl.innerText = quantities.chicken;
+            qtyDuckWrapEl.innerText = quantities.duck_wrap;
 
-            // 3. Top 5 Items Bar Chart
-            const itemMap = {};
-            filteredData.forEach(item => {
-                itemMap[item.name] = (itemMap[item.name] || 0) + item.sales;
-            });
-            const topItems = Object.entries(itemMap).sort((a,b) => b[1] - a[1]).slice(0, 5);
-            if (charts.topItems) charts.topItems.destroy();
-            charts.topItems = new Chart(document.getElementById('topItemsChart'), {
-                type: 'bar',
-                data: {
-                    labels: topItems.map(i => i[0]),
-                    datasets: [{ label: '매출액', data: topItems.map(i => i[1]), backgroundColor: '#f59e0b', borderRadius: 4 }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', plugins: { legend: { display: false } } }
-            });
-
-            // 4. Store Performance Chart
-            const storeMap = {};
-            filteredData.forEach(item => {
-                storeMap[item.store] = (storeMap[item.store] || 0) + item.sales;
-            });
-            if (charts.store) charts.store.destroy();
-            charts.store = new Chart(document.getElementById('storeChart'), {
-                type: 'bar',
-                data: {
-                    labels: Object.keys(storeMap),
-                    datasets: [{ label: '점포별 매출', data: Object.values(storeMap), backgroundColor: '#10b981', borderRadius: 4 }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-            });
-
-            // 5. Promo vs Normal Pie Chart
-            const promoMap = { '행사(Y)': 0, '일반(N)': 0 };
-            filteredData.forEach(item => {
-                if (item.promo === 'Y') promoMap['행사(Y)'] += item.sales;
-                else promoMap['일반(N)'] += item.sales;
-            });
-            if (charts.promo) charts.promo.destroy();
-            charts.promo = new Chart(document.getElementById('promoChart'), {
-                type: 'pie',
-                data: {
-                    labels: Object.keys(promoMap),
-                    datasets: [{ data: Object.values(promoMap), backgroundColor: ['#f43f5e', '#94a3b8'] }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
-            });
+            calculateBill();
         }
 
-        // Handle File Upload (.xlsx, .csv)
-        function handleFileUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
+        // Countdown Timer Logic targeting next 12:00 PM
+        function updateCountdown() {
+            const now = new Date();
+            let target = new Date();
+            target.setHours(12, 0, 0, 0);
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array', cellDates: true });
-                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+            if (now >= target) {
+                // If past 12 PM today, target 12 PM tomorrow
+                target.setDate(target.getDate() + 1);
+            }
 
-                    if (jsonData.length === 0) {
-                        alert("엑셀 파일에 데이터가 없습니다.");
-                        return;
-                    }
+            const diff = target - now;
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
-                    const mappedData = jsonData.map((row) => ({
-                        date: formatDateToYYYYMMDD(row['일자'] || row['Date'] || ''),
-                        store: String(row['점포'] || row['Store'] || '미지정'),
-                        category: String(row['카테고리'] || row['Category'] || '기타'),
-                        code: String(row['상품코드'] || row['ProductCode'] || '-'),
-                        name: String(row['상품명'] || row['ProductName'] || '미지정'),
-                        qty: Number(row['판매수량'] || row['Quantity'] || 0),
-                        price: Number(row['정상단가'] || row['Price'] || 0),
-                        discount: Number(row['할인액'] || row['Discount'] || 0),
-                        sales: Number(row['매출액'] || row['Sales'] || 0),
-                        promo: String(row['행사적용'] || row['Promo'] || 'N').toUpperCase()
-                    }));
-
-                    rawData = mappedData;
-                    initDropdowns();
-                    resetFilters();
-                } catch (err) {
-                    console.error(err);
-                    alert("파일을 읽는 중 오류가 발생했습니다. 헤더 이름(일자, 점포, 카테고리, 상품코드, 상품명, 판매수량, 정상단가, 할인액, 매출액, 행사적용)을 확인해주세요.");
-                }
-            };
-            reader.readAsArrayBuffer(file);
+            document.getElementById('hoursVal').innerText = String(hours).padStart(2, '0');
+            document.getElementById('minutesVal').innerText = String(minutes).padStart(2, '0');
+            document.getElementById('secondsVal').innerText = String(seconds).padStart(2, '0');
         }
 
-        // Export Filtered Data to CSV
-        function exportToCSV() {
-            if (filteredData.length === 0) {
-                alert("다운로드할 데이터가 없습니다.");
+        setInterval(updateCountdown, 1000);
+        updateCountdown();
+        calculateBill();
+
+        // Smooth scroll helper
+        function scrollToSection(id) {
+            const el = document.getElementById(id);
+            if(el) el.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // FAQ Toggle
+        function toggleFaq(btn) {
+            const content = btn.nextElementSibling;
+            const icon = btn.querySelector('.faq-icon');
+            content.classList.toggle('hidden');
+            icon.innerText = content.classList.contains('hidden') ? '+' : '-';
+        }
+
+        // Modal triggers
+        function openAlarmModal() {
+            document.getElementById('alarmModal').classList.remove('hidden');
+        }
+        function closeAlarmModal() {
+            document.getElementById('alarmModal').classList.add('hidden');
+        }
+        function submitAlarm() {
+            const phone = document.getElementById('phoneInput').value;
+            if(!phone || phone.length < 10) {
+                showToast('올바른 휴대폰 번호를 입력해주세요.');
                 return;
             }
+            closeAlarmModal();
+            showToast('🔔 11:50 타임어택 알림 예약이 완료되었습니다!');
+        }
 
-            const headers = ["일자", "점포", "카테고리", "상품코드", "상품명", "판매수량", "정상단가", "할인액", "매출액", "행사적용"];
-            const rows = filteredData.map(item => [
-                item.date,
-                item.store,
-                item.category,
-                item.code,
-                `"${item.name.replace(/"/g, '""')}"`,
-                item.qty,
-                item.price,
-                item.discount,
-                item.sales,
-                item.promo
-            ]);
+        // Toast Message helper
+        function showToast(msg) {
+            const t = document.getElementById('toastMessage');
+            t.innerText = msg;
+            t.style.opacity = '1';
+            setTimeout(() => {
+                t.style.opacity = '0';
+            }, 3000);
+        }
 
-            const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            
-            const link = document.createElement("a");
-            link.setAttribute("href", url);
-            link.setAttribute("download", `sales_report_${new Date().toISOString().slice(0,10)}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+        // Copy address & links
+        function copyAddress() {
+            const address = '부산광역시 진구 중앙대로 738 이마트 센트럴점 지하 1층 신선식품 코너';
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(address).then(() => {
+                    showToast('📋 매장 주소가 복사되었습니다!');
+                }).catch(() => {
+                    fallbackCopy(address);
+                });
+            } else {
+                fallbackCopy(address);
+            }
+        }
+
+        function fallbackCopy(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast('📋 주소가 복사되었습니다!');
+            } catch (err) {
+                showToast('복사에 실패했습니다.');
+            }
+            document.body.removeChild(textArea);
+        }
+
+        function openMap(type) {
+            if(type === 'naver') {
+                window.open('https://map.naver.com/v5/search/이마트%20센트럴점', '_blank');
+            } else {
+                window.open('https://map.kakao.com/?q=이마트%20센트럴점', '_blank');
+            }
         }
     </script>
 </body>
